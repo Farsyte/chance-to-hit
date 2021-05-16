@@ -36,11 +36,21 @@
 *.x86_64
 *.hex
 
+# log files
+*.log
+*.err
+
 # Debug files
 *.dSYM/
 *.su
 *.idb
 *.pdb
+
+# Ignore hidden files by default
+.*
+
+# Ignore emacs editor backup files
+*~
 
 # Kernel Module Compile Results
 *.mod*

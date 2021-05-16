@@ -1,0 +1,158 @@
+# -*- makefile-gmake -*-
+
+THIS            := ${abspath ${lastword ${MAKEFILE_LIST}}}
+THISDIR         := ${dir ${THIS}}
+THISFILE        := ${notdir ${THIS}}
+
+THAT            := ${abspath ${lastword ${MAKEFILE_LIST}}}
+THATDIR         := ${dir ${THAT}}
+THATFILE        := ${notdir ${THAT}}
+
+TOP		:= ${THISDIR}
+
+# ================
+# convenience variables
+
+Q               = @                             # normally execute without printing
+I               = -                             # normally ignore error returns
+C               = $Q $I                         # execute quietly *and* ignore errors
+R               = /bin/rm -f                    # normal way to delete things
+P               = $C printf                     # Normal "print to log" command
+N               = $Q true                       # Normal "print to log -- NOT!" command
+
+# ================
+# top level directories
+
+TOPINC          := ${TOP}inc/
+TOPLIB          := ${TOP}lib/
+TOPBIN          := ${TOP}bin/
+TOPREF          := ${TOP}ref/
+
+# ================
+# standard meta-targets
+
+default::
+	$Q $(MAKE) build
+	$Q $(MAKE) execs
+	$Q $(MAKE) check
+	$Q $(MAKE) cover
+
+world::
+	$Q $(MAKE) clean
+	$Q $(MAKE) default
+
+# ================
+# recursive build support
+
+RECURSIVE       = clean build execs check cover
+$(RECURSIVE)::  %:                              ; $N '[%s] %s...\n' '$@' '$(REL)'
+
+SUBMAK          = GNUmakefile
+ifeq ($(SUBDIRS),)
+SUBMAKS         = $(wildcard */$(SUBMAK))
+SUBDIRS         = $(SUBMAKS:%/$(SUBMAK)=%)
+endif
+
+ifneq ($(SUBDIRS),)
+RECSUBS         = $(foreach R,$(RECURSIVE),$(foreach S,$(SUBDIRS),$(S)/$(R).recurse))
+RECSUB_CMD      = $(MAKE) REL='$(REL)$(dir $@)' SUBDIRS='' -f $(SUBMAK) -C '$(dir $@)' '$(basename $(notdir $@))'
+RECSUB_PAT      = $(foreach S,$(SUBDIRS),$(S)/%.recurse)
+RECPREREQ       = ${RECSUBS:%.recurse=%.before}
+
+$(RECSUBS)::    %.recurse:      %.before        ; $Q $(RECSUB_CMD)
+$(RECPREREQ)::  %:                              ; $N
+$(RECURSIVE)::  %:              $(RECSUB_PAT)   ; $N '[%s] %s... subs done\n' '$@' '$(REL)'
+endif
+
+# failsafe build for anything.recurse
+# to satisfy dependencies on build phases
+# for subdirectories not in SUBDIRS list
+
+%.recurse::					; $N
+
+debug:
+	$P 'RECSUBS is "%s"\n' '${RECSUBS}'
+
+# ================
+# standard compiler flag options
+
+OFLAGS          = -O3                           # standard optimizer level
+DFLAGS          = -g                            # standard debugger level
+# PFLAGS        = -pg --coverage                # Profiling facilities
+WFLAGS          = -Wall -Wextra -pedantic       # base warning flags
+IFLAGS		= ${SEARCHINCD:%=-I%} -I${TOPINC} # header search path flags
+LDFLAGS		= ${SEARCHLIBD:%=-L%} -L${TOPLIB} # library search path flags
+LDLIBS		= ${IMPORTLIBS:%=-l%}		# libraries to link
+STD_C           = c11                           # default to standard C of 2011
+STD_X           = c++14                         # default to standard C++ of 2014
+
+# Additional Warnings for C and C++
+WADD           += shadow
+WADD           += cast-qual
+WADD           += cast-align
+WADD           += write-strings
+WADD           += conversion
+WADD           += missing-declarations
+WADD           += redundant-decls
+
+# Additional Warning for C
+WADD_C         += bad-function-cast
+WADD_C         += c++-compat
+WADD_C         += strict-prototypes
+WADD_C         += old-style-definition
+WADD_C         += missing-prototypes
+WADD_C         += nested-externs
+
+# warnings rejected by Clang C++ ...
+#   Apple LLVM version 6.1.0 (clang-602.0.53) (based on LLVM 3.6.0svn)
+#
+#     WADD           += conditionally-supported
+#     WADD           += zero-as-null-pointer-constant
+#     WADD           += useless-cast
+#     WADD           += logical-op
+
+
+# ================
+# construct the full compiler options lists
+
+WFLAGS_         = ${WFLAGS} ${WADD:%=-W%} ${WNOT:%=-Wno-%}
+WFLAGS_C        = ${WFLAGS_}  ${WADD_C:%=-W%} ${WNOT_C:%=-Wno-%}
+WFLAGS_X        = ${WFLAGS_}  ${WADD_X:%=-W%} ${WNOT_X:%=-Wno-%}
+
+CFLAGS          = ${OFLAGS} ${DFLAGS} ${PFLAGS} ${IFLAGS} ${WFLAGS_C} ${STD_C:%=--std=%}
+CXXFLAGS        = ${OFLAGS} ${DFLAGS} ${PFLAGS} ${IFLAGS} ${WFLAGS_X} ${STD_X:%=--std=%}
+
+# ================
+# Replacement default build lines
+
+# Compiling C and C++
+# -- print a brief status line saying what we are doing
+# -- do not print the very long command line
+# -- generate a dependency file
+
+%.o:            %.c
+	$P '[cc] %s\n' '$(REL)$*'
+	$C $R '$*.o'
+	$Q $(COMPILE.c) -MMD $(OUTPUT_OPTION) $<
+
+%.o:            %.cc
+	$P '[cc] %s\n' '$(REL)$*'
+	$C $R '$*.o'
+	$Q $(COMPILE.cc) -MMD $(OUTPUT_OPTION) $<
+
+-include ${wildcard *.d}
+
+# ================
+# meta-targets
+
+.FORCE:
+.PHONY:         $(TARGETS) .FORCE
+
+# ================
+# quick hack to print lots of variables
+
+.PHONY:         .printvars
+.printvars:
+	@$(foreach V,$(sort $(.VARIABLES)),                     \
+	  $(if $(filter-out environment% default automatic,     \
+	  $(origin $V)),$(warning $V=$($V) ($(value $V)))))
