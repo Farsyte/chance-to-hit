@@ -55,9 +55,14 @@ endif
 
 ifneq ($(SUBDIRS),)
 RECSUBS         = $(foreach R,$(RECURSIVE),$(foreach S,$(SUBDIRS),$(S)/$(R).recurse))
+
 RECSUB_CMD      = $(MAKE) REL='$(REL)$(dir $@)' SUBDIRS='' -f $(SUBMAK) -C '$(dir $@)' '$(basename $(notdir $@))'
 RECSUB_PAT      = $(foreach S,$(SUBDIRS),$(S)/%.recurse)
 RECPREREQ       = ${RECSUBS:%.recurse=%.before}
+
+# RECSUBS	= pct/clean.recurse libroll/clean.recurse pct/build.recurse libroll/build.recurse pct/execs.recurse libroll/execs.recurse pct/check.recurse libroll/check.recurse pct/cover.recurse libroll/cover.recurse
+# RECSUB_CMD	= make REL='./' SUBDIRS='' -f GNUmakefile -C './' ''
+# RECPREREQ	= pct/clean.before libroll/clean.before pct/build.before libroll/build.before pct/execs.before libroll/execs.before pct/check.before libroll/check.before pct/cover.before libroll/cover.before
 
 $(RECSUBS)::    %.recurse:      %.before        ; $Q $(RECSUB_CMD)
 $(RECPREREQ)::  %:                              ; $N
@@ -83,6 +88,7 @@ WFLAGS          = -Wall -Wextra -pedantic       # base warning flags
 IFLAGS		= ${SEARCHINCD:%=-I%} -I${TOPINC} # header search path flags
 LDFLAGS		= ${SEARCHLIBD:%=-L%} -L${TOPLIB} # library search path flags
 LDLIBS		= ${IMPORTLIBS:%=-l%}		# libraries to link
+ARFLAGS		= rvU
 STD_C           = c11                           # default to standard C of 2011
 STD_X           = c++14                         # default to standard C++ of 2014
 

@@ -8,6 +8,8 @@ OBJS		:= ${SRCS:%.cc=%.o}
 INST		:= ${PGMS:%=${TOPBIN}%}
 LOGS		:= ${PGMS:%=%.log}
 
+IMPORTLIBS	:= roll
+
 # -- ================================================================ --
 #    Compile C++ to Objects
 
