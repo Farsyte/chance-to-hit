@@ -40,6 +40,11 @@ public:
   // penalty, using "roll.minus(2)" gives results from 0 to 10.
   Roll &minus(int penalty) ;
 
+  // Compute the probability that an actual roll made with the distribution
+  // accumualted so far will have a total that meets or exceeds the given
+  // threshold. Returns a value from 0.0 (impossible) to 1.0 (certain).
+  double probability(int thresh);
+
   // ugly and temporary method that prints the probability of achieving
   // or exceeding the threshold with this roll.
   Roll &print(int thresh) ;
