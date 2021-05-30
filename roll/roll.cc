@@ -77,7 +77,7 @@ double Roll::probability(int thresh) {
   combos s = den;
   for (unsigned i = 0; i < nums; ++i) {
     if (base+(int)i == thresh) {
-      return ((unsigned)((double)s / (double)den));
+      return (double)s / (double)den;
     }
     s -= num[i];
   }
