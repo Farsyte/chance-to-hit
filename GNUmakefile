@@ -4,5 +4,5 @@ include GNUmakefile.std
 # that we should finish making "build" in libroll
 # before starting to make "build" in pct.
 
-pct/build.before::	libroll/build.recurse
+pct/build.before::	roll/build.recurse
 
