@@ -88,7 +88,7 @@ WFLAGS          = -Wall -Wextra -pedantic       # base warning flags
 IFLAGS		= ${SEARCHINCD:%=-I%} -I${TOPINC} # header search path flags
 LDFLAGS		= ${SEARCHLIBD:%=-L%} -L${TOPLIB} # library search path flags
 LDLIBS		= ${IMPORTLIBS:%=-l%}		# libraries to link
-ARFLAGS		= rvU
+ARFLAGS		= rv # gmake 4.3 (default on macos) lacks the U flag.
 STD_C           = c11                           # default to standard C of 2011
 STD_X           = c++14                         # default to standard C++ of 2014
 
