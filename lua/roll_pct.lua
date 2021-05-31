@@ -49,7 +49,7 @@ function RollPct(cpt, plus, target)
         if rt >= target then ways_match = ways_match + ways[rt] end
     end
     print("chances are "..ways_match.." in "..ways_total)
-    return ways_match / ways_total
+    return string.format("%.0f%%", ways_match * 100 / ways_total)
 end
 
 local cpt = {}
@@ -58,7 +58,6 @@ table.insert(cpt, {sides=6})
 table.insert(cpt, {sides=6})
 local plus = 4
 local target = 16
-
 print("hello, rollPct returns "..RollPct(cpt, plus, target));
 
 cpt = {}
@@ -69,3 +68,15 @@ plus = 4
 target = 16
 
 print("second rollPct returns "..RollPct(cpt, plus, target));
+
+cpt = {}
+table.insert(cpt, {sides=12})
+table.insert(cpt, {sides=4})
+table.insert(cpt, {sides=4})
+plus = -4
+target = 16
+
+print("third rollPct returns "..RollPct(cpt, plus, target));
+print("μαθηματα παθηματα")
+print("γνωθε σεαυτον")
+
